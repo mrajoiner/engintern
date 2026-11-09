@@ -1,0 +1,5 @@
+dist/
+generated-assets.mjs
+.local-catalog.json
+node_modules/
+.openai/site-workflow-state.json
