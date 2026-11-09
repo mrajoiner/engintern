@@ -84,3 +84,15 @@ footer>.brand,footer>p,footer>span{display:none}footer>button{margin-left:0;font
 @media(max-width:600px){.site-header{padding:23px 22px 0}.site-header .header-inner{gap:20px;padding-bottom:15px}.site-header .brand{font-size:27px}.site-header .resume-button{font-size:10px;padding:12px 13px}.site-header .resume-button span{display:none}.site-header nav{justify-content:flex-start;flex-wrap:wrap;gap:5px 20px}.site-header .nav{font-size:15px;padding:9px 0}.site-header .nav #savedCount{font-size:9px;min-width:16px;vertical-align:1px}.page-intro{padding-top:42px}.has-state .page-intro,.workspace-view .page-intro{padding-top:38px}.landing #map{height:245px}}
 @media(min-width:1101px){.site-header .nav{font-size:20px;letter-spacing:-.65px}.site-header nav{gap:22px}}
 @media(min-width:1500px){.site-header .nav{font-size:23px}.site-header nav{gap:30px}}
+/* The map leads; the tagline stays with the navigation on every view. */
+.site-tagline{margin:18px 0 0;text-align:center;color:var(--navy);font:800 clamp(16px,1.7vw,24px)/1.4 Manrope,sans-serif;letter-spacing:-.55px}
+.page-intro,.has-state .page-intro,.workspace-view .page-intro{padding-top:32px;padding-bottom:22px}
+.page-intro h1,.has-state h1{font-size:clamp(28px,3vw,42px);letter-spacing:-1.6px;line-height:1.12}
+.landing .page-intro h1 br{display:none}.landing .page-intro h1 br:after{content:' '}
+.landing .explorer-body{max-width:1250px;width:100%}
+.landing #map{height:clamp(430px,62vh,690px)}
+.has-state .explorer-body{max-width:1280px;grid-template-columns:minmax(0,1fr) 255px}.has-state #map{height:440px}
+@media(min-width:1500px){.page-intro h1,.has-state h1{font-size:44px}.landing .explorer-body{max-width:1380px}.landing #map{height:650px}}
+@media(max-width:800px){.has-state .explorer-body{grid-template-columns:1fr}.has-state #map{height:360px}.landing #map{height:430px}.page-intro,.has-state .page-intro{padding-top:30px;padding-bottom:18px}}
+@media(max-width:480px){.site-tagline{font-size:16px;letter-spacing:-.45px;margin-top:19px}.page-intro h1,.has-state h1{font-size:28px;letter-spacing:-1px}.page-intro,.has-state .page-intro{padding-top:31px;padding-bottom:22px}.landing #map{height:330px}.has-state #map{height:300px}.landing .page-intro h1 br{display:block}.landing .page-intro h1 br:after{content:none}}
+@media(min-width:481px){.landing .page-intro h1 br{display:contents}.landing .page-intro h1 br:after{content:' '}}

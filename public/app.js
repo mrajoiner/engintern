@@ -37,7 +37,7 @@ function setView(next){
  view=next;limit=18;$('#search').value='';$('#discipline').value='';$('#termFilter').value='';
  $$('.nav').forEach(n=>{n.classList.toggle('active',n.dataset.view===next);if(n.dataset.view===next)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
  $('#exploreSurface').hidden=next!=='explore';$('#resumeBanner').hidden=next!=='explore';
- const titles={explore:'Where will you<br>make your mark?',matches:'You bring the skills.<br><em>Let’s find a place for them.</em>',saved:'The ones that caught your eye.<br><em>All right here.</em>',applications:'Big things start small.<br><em>Keep your next steps here.</em>'};
+ const titles={explore:'Where will you <br>make your mark?',matches:'You bring the skills.<br><em>Let’s find a place for them.</em>',saved:'The ones that caught your eye.<br><em>All right here.</em>',applications:'Big things start small.<br><em>Keep your next steps here.</em>'};
  const subtitles={explore:'You’ve got skills to put to work. Let’s find a place to use them.',matches:'A few familiar skills can be the start of something new.',saved:'Less searching all over again. More time figuring out what feels right.',applications:'Stay on top of the forms, the follow-ups, and the good news.'};
  $('#pageTitle').innerHTML=titles[next];$('#pageSubtitle').textContent=subtitles[next];$('#introEyebrow').hidden=next!=='explore';
  $('#sort').value=next==='matches'?'match':'city';render();
