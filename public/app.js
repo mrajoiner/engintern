@@ -166,3 +166,20 @@ Promise.all([
  fileStore('get').then(file=>{resumeFile=file||null;}).catch(()=>{})
 ]);
 setInterval(()=>{if(!document.hidden)loadJobs();},3600000);
+// A restrained depth effect, with no animation on touch or reduced-motion devices.
+const parallaxPreference=matchMedia('(min-width: 900px) and (hover: hover) and (prefers-reduced-motion: no-preference)');
+let parallaxFrame=0;
+function updateParallax(){
+ parallaxFrame=0;
+ const enabled=parallaxPreference.matches&&view==='explore';
+ document.body.classList.toggle('parallax-enabled',enabled);
+ const progress=enabled?Math.min(window.scrollY,300):0;
+ document.documentElement.style.setProperty('--map-drift',Math.round(progress*.12)+'px');
+ document.documentElement.style.setProperty('--title-drift',Math.round(progress*-.055)+'px');
+}
+function scheduleParallax(){if(!parallaxFrame)parallaxFrame=requestAnimationFrame(updateParallax);}
+window.addEventListener('scroll',scheduleParallax,{passive:true});
+window.addEventListener('resize',scheduleParallax,{passive:true});
+parallaxPreference.addEventListener('change',scheduleParallax);
+new MutationObserver(scheduleParallax).observe(document.body,{attributes:true,attributeFilter:['class']});
+updateParallax();
