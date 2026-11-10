@@ -15,6 +15,10 @@ export function parseValue(text,start=0){
 }
 export function parseBrowse(html){const found=html.match(/l:(\$R\[\d+\]=\{kind:"(?:group|role|metro)"[\s\S]*)/);if(!found)throw Error('Browse data unavailable');const d=parseValue(found[1]);if(!Array.isArray(d.listings)||!Number.isInteger(d.totalPages)||d.degraded)throw Error('Incomplete browse response');return d;}
 const origin='https://www.internships.com';
+const placeNames=JSON.parse(await readFile(new URL('./us-place-names.json',import.meta.url),'utf8'));
+const placeKey=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const placeSets=Object.fromEntries(Object.entries(placeNames).map(([s,v])=>[s,new Set(v)]));
+export function resolveCity(value,state,slug=''){const parts=(value||'').split(',').map(v=>v.trim());const si=parts.findIndex(v=>new RegExp('^(?:'+state+'|'+states[state]+')(?:\\b|$)','i').test(v));const options=[si>0?parts[si-1]:'',...parts.slice().reverse(),slug.match(new RegExp('^(.+)-'+state+'$','i'))?.[1]?.replace(/-/g,' ')||''];for(let c of options){c=c.replace(/^(?:USA?|United States)\s*[-–]\s*/i,'').replace(new RegExp('^'+states[state]+'\s*[-–]\s*','i'),'').replace(/\s*\([^)]*\)\s*$/,'').replace(new RegExp('\\s+'+state+'$','i'),'').trim();for(const v of [c,...c.split(/\s+[-–]\s+/)]){if(!v||/\d/.test(v)||v.toLowerCase()===states[state].toLowerCase())continue;if(placeSets[state]?.has(placeKey(v)))return v;}}return null;}
 export function cardsToJobs(cards,checked,links){const out=[];for(const j of cards){
  if(j.closeDatePassed||(j.validThrough&&Date.parse(j.validThrough)<Date.parse(checked)))continue;
  if(!/intern|co.op/i.test(j.title)||/202[0-6]/.test(j.title)&&!/2027/.test(j.title))continue;
@@ -23,7 +27,7 @@ export function cardsToJobs(cards,checked,links){const out=[];for(const j of car
  if(!state)state=Object.keys(states).find(s=>(j.location||'').toLowerCase().includes(states[s].toLowerCase()));
  if(!state){const suffix=(j.locationSlug||'').match(/(?:^|-)([a-z]{2})$/i)?.[1]?.toUpperCase();if(states[suffix])state=suffix;}
  if(!state||j.remote&&!j.location)continue;
- const parts=(j.location||'').split(',').map(x=>x.trim());const stateIndex=parts.findIndex(x=>new RegExp('^(?:'+state+'|'+states[state]+')(?:\\b|$)','i').test(x));let city=(stateIndex>0?parts[stateIndex-1]:parts[0]||'').replace(/\s*\+\d+ more.*$/,'').trim();if(/\d/.test(city)){const slugCity=(j.locationSlug||'').match(new RegExp('^(.+)-'+state+'$','i'))?.[1];city=slugCity?slugCity.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'';}if(!city||/remote|united states|nationwide/i.test(city)||city.toLowerCase()===states[state].toLowerCase())continue;
+ const city=resolveCity(j.location,state,j.locationSlug);if(!city)continue;
  const discipline=['Environmental','Biomedical','Industrial','Petroleum','Software','Electrical','Structural','Civil','Mechanical','Manufacturing','Materials','Systems','Chemical','Nuclear','Aerospace','Robotics'].find(x=>new RegExp(x,'i').test(j.title))||'General engineering';
  const skills=skillTerms.filter(s=>new RegExp('(^|[^a-z])'+s.replace(/[+]/g,'\\+')+'([^a-z]|$)','i').test(j.title));
  out.push({id:'internships-'+j.id+'-'+state+'-'+city,source:'internshipscom',company:j.companyName,title:j.title,city,state,discipline,skills,pay:typeof j.salary==='string'?j.salary:'See employer posting',term:j.termLabel||'See source posting',details:{arrangement:j.remote?'Remote':'See source posting'},deadline:j.validThrough||'Not specified · check employer',url:link,summary:'Listed by Internships.com. Open the source listing for the full description, requirements, and employer application link.',eligibility:[],checked,validThrough:j.validThrough||null,sourceVerifiedAt:checked});

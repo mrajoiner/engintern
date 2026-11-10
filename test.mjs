@@ -44,3 +44,5 @@ const dup={updated:new Date(now).toISOString(),sources:[{source:'test',checked:n
 assert.equal(publicFeed(dup,now).jobs.length,1);
 const dated=structuredClone(dup);dated.sources[0].jobs=[{...dated.sources[0].jobs[0],validThrough:new Date(now-1000).toISOString()}];assert.equal(publicFeed(dated,now).jobs.length,0);
 console.log('Passed: street addresses resolve to cities or are excluded; cross-source duplicate collapse; per-read deadline expiry.');
+const {resolveCity}=await import('./internships.mjs');assert.equal(resolveCity('Toronto','CA'),null);assert.equal(resolveCity('Pune/Pimpri-Chinchwad Area','CA'),null);assert.equal(resolveCity('101 Main Street, Austin, TX','TX'),'Austin');assert.equal(resolveCity('USA - New York - Malta','NY'),'Malta');
+console.log('Passed: US place validation rejects ambiguous foreign city/state metadata.');
