@@ -7,9 +7,18 @@ export function mergeResults(previous,results,now=Date.now()){
  const next=results.map((r,i)=>r.status==='fulfilled'?{source:sources[i][1],ok:true,jobs:r.value,checked:new Date(now).toISOString()}:{...(previous.sources.find(s=>s.source===sources[i][1])||{source:sources[i][1],jobs:[]}),ok:false,error:'Employer feed could not be reached'});
  return {sources:next,updated:new Date(now).toISOString()};
 }
-export function publicFeed(d,now=Date.now()){const jobs=d.sources.flatMap(s=>now-Date.parse(s.checked||0)<MAX_STALE?s.jobs:[]),distinctPostings=new Set(jobs.map(j=>j.url||j.id)).size;return{jobs,coverage:{target:100,distinctPostings,meetsTarget:distinctPostings>=100},updated:d.updated,sources:d.sources.map(s=>{let config=sources.find(x=>x[1]===s.source);return{key:s.source,name:config?.[2]||s.source,ok:s.ok,checked:s.checked,count:now-Date.parse(s.checked||0)<MAX_STALE?s.jobs.length:0,url:config?.[3]||(config?.[0]==='gh'?'https://job-boards.greenhouse.io/'+s.source:'https://jobs.lever.co/'+s.source)}})}}
+export function publicFeed(d,now=Date.now()){
+ const seen=new Set(),jobs=[];
+ for(const source of d.sources){if(now-Date.parse(source.checked||0)>=MAX_STALE)continue;
+  for(const j of source.jobs){if(j.validThrough&&Date.parse(j.validThrough)<=now)continue;
+   if(j.source==='internshipscom'&&now-Date.parse(j.sourceVerifiedAt||j.checked)>=MAX_STALE)continue;
+   const key=!j.title?(j.url||j.id):[j.company,j.title,j.city,j.state].map(x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'')).join('|');if(seen.has(key))continue;seen.add(key);jobs.push(j);
+  }
+ }
+ return{jobs,coverage:{distinctPostings:new Set(jobs.map(j=>j.url||j.id)).size,locationEntries:jobs.length,unlimited:true},updated:d.updated,sources:d.sources.map(s=>{const config=sources.find(x=>x[1]===s.source);return{key:s.source,name:config?.[2]||s.source,ok:s.ok,checked:s.checked,count:jobs.filter(j=>j.source===s.source).length,url:config?.[3]||(config?.[0]==='gh'?'https://job-boards.greenhouse.io/'+s.source:'https://jobs.lever.co/'+s.source)}})};
+}
 async function stored(env){let item=await env.BUCKET?.get('catalog/current.json');return item?await item.json():seed}
-async function refresh(env){if(inflight)return inflight;inflight=(async()=>{let old=await stored(env);let results=await Promise.allSettled(sources.map(readSource));let next=mergeResults(old,results);const coverage=publicFeed(next).coverage;if(!coverage.meetsTarget)console.warn(JSON.stringify({event:"internship_coverage_below_target",...coverage}));if(!env.BUCKET)throw Error('Persistent catalog storage is unavailable');await env.BUCKET.put('catalog/current.json',JSON.stringify(next),{httpMetadata:{contentType:'application/json'}});return next})();try{return await inflight}finally{inflight=null}}
+async function refresh(env){if(inflight)return inflight;inflight=(async()=>{let old=await stored(env);let results=await Promise.allSettled(sources.map(readSource));let next=mergeResults(old,results);if(!env.BUCKET)throw Error('Persistent catalog storage is unavailable');await env.BUCKET.put('catalog/current.json',JSON.stringify(next),{httpMetadata:{contentType:'application/json'}});return next})();try{return await inflight}finally{inflight=null}}
 export default{async fetch(request,env,ctx){let url=new URL(request.url);try{
  if(url.pathname==='/api/jobs'){let d=await stored(env);if(Date.now()-Date.parse(d.updated)>TTL)ctx.waitUntil(refresh(env).catch(console.error));return json(publicFeed(d))}
  if(url.pathname==='/api/refresh'&&request.method==='POST'){// The hosted owner-private Site dispatch authorizes this catalog-only writer.
