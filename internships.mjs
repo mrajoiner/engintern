@@ -1,7 +1,7 @@
 // Read the public SSR data as data, never execute downloaded scripts.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
-import {states,skillTerms} from './sources.mjs';
+import {states,skillTerms,isPastTerm} from './sources.mjs';
 export function parseValue(text,start=0){
  let at=start;const refs=new Map();const ws=()=>{while(/\s/.test(text[at]||'')&&at<text.length)at++;};
  function value(){ws();const c=text[at];
@@ -18,10 +18,10 @@ const origin='https://www.internships.com';
 const placeNames=JSON.parse(await readFile(new URL('./us-place-names.json',import.meta.url),'utf8'));
 const placeKey=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const placeSets=Object.fromEntries(Object.entries(placeNames).map(([s,v])=>[s,new Set(v)]));
-export function resolveCity(value,state,slug=''){const parts=(value||'').split(',').map(v=>v.trim());const si=parts.findIndex(v=>new RegExp('^(?:'+state+'|'+states[state]+')(?:\\b|$)','i').test(v));const options=[si>0?parts[si-1]:'',...parts.slice().reverse(),slug.match(new RegExp('^(.+)-'+state+'$','i'))?.[1]?.replace(/-/g,' ')||''];for(let c of options){c=c.replace(/^(?:USA?|United States)\s*[-–]\s*/i,'').replace(new RegExp('^'+states[state]+'\s*[-–]\s*','i'),'').replace(/\s*\([^)]*\)\s*$/,'').replace(new RegExp('\\s+'+state+'$','i'),'').trim();for(const v of [c,...c.split(/\s+[-–]\s+/)]){if(!v||/\d/.test(v)||v.toLowerCase()===states[state].toLowerCase())continue;if(placeSets[state]?.has(placeKey(v)))return v;}}return null;}
+export function resolveCity(value,state,slug=''){const parts=(value||'').split(',').map(v=>v.trim());const si=parts.findIndex(v=>new RegExp('^(?:'+state+'|'+states[state]+')(?:\\b|$)','i').test(v));const options=[si>0?parts[si-1]:'',...parts.slice().reverse(),(slug||'').match(new RegExp('^(.+)-'+state+'$','i'))?.[1]?.replace(/-/g,' ')||''];for(let c of options){c=c.replace(/^(?:USA?|United States)\s*[-–]\s*/i,'').replace(new RegExp('^'+states[state]+'\s*[-–]\s*','i'),'').replace(/\s*\([^)]*\)\s*$/,'').replace(new RegExp('\\s+'+state+'$','i'),'').trim();for(const v of [c,...c.split(/\s+[-–]\s+/)]){if(!v||/\d/.test(v)||v.toLowerCase()===states[state].toLowerCase())continue;if(placeSets[state]?.has(placeKey(v)))return v;}}return null;}
 export function cardsToJobs(cards,checked,links){const out=[];for(const j of cards){
- if(j.closeDatePassed||(j.validThrough&&Date.parse(j.validThrough)<Date.parse(checked)))continue;
- if(!/intern|co.op/i.test(j.title)||/202[0-6]/.test(j.title)&&!/2027/.test(j.title))continue;
+ if(isPastTerm(j,Date.parse(checked))||j.closeDatePassed||(j.validThrough&&Date.parse(j.validThrough)<Date.parse(checked)))continue;
+ if(!/intern|co.op/i.test(j.title)||/202[0-5]/.test(j.title)&&!/2027/.test(j.title))continue;
  const link=links.get(String(j.id));if(!link)continue;
  let state=Object.keys(states).find(s=>new RegExp('(?:,|\\s)'+s+'(?:,|$)','i').test(j.location||''));
  if(!state)state=Object.keys(states).find(s=>(j.location||'').toLowerCase().includes(states[s].toLowerCase()));

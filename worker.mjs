@@ -1,4 +1,4 @@
-import {sources,readSource} from './sources.mjs';
+import {sources,readSource,isPastTerm} from './sources.mjs';
 import {assets,seed} from './generated-assets.mjs';
 const TTL=3600000,MAX_STALE=7*86400000;
 let inflight;
@@ -10,7 +10,7 @@ export function mergeResults(previous,results,now=Date.now()){
 export function publicFeed(d,now=Date.now()){
  const seen=new Set(),jobs=[];
  for(const source of d.sources){if(now-Date.parse(source.checked||0)>=MAX_STALE)continue;
-  for(const j of source.jobs){if(j.validThrough&&Date.parse(j.validThrough)<=now)continue;
+  for(const j of source.jobs){if(j.source==='internshipscom'&&isPastTerm(j,now))continue;if(j.validThrough&&Date.parse(j.validThrough)<=now)continue;
    if(j.source==='internshipscom'&&now-Date.parse(j.sourceVerifiedAt||j.checked)>=MAX_STALE)continue;
    const key=!j.title?(j.url||j.id):[j.company,j.title,j.city,j.state].map(x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'')).join('|');if(seen.has(key))continue;seen.add(key);jobs.push(j);
   }

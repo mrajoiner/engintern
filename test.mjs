@@ -46,3 +46,6 @@ const dated=structuredClone(dup);dated.sources[0].jobs=[{...dated.sources[0].job
 console.log('Passed: street addresses resolve to cities or are excluded; cross-source duplicate collapse; per-read deadline expiry.');
 const {resolveCity}=await import('./internships.mjs');assert.equal(resolveCity('Toronto','CA'),null);assert.equal(resolveCity('Pune/Pimpri-Chinchwad Area','CA'),null);assert.equal(resolveCity('101 Main Street, Austin, TX','TX'),'Austin');assert.equal(resolveCity('USA - New York - Malta','NY'),'Malta');
 console.log('Passed: US place validation rejects ambiguous foreign city/state metadata.');
+assert.equal(resolveCity('Austin, TX','TX',null),'Austin');
+const {isPastTerm}=await import('./sources.mjs');assert(isPastTerm({term:'Summer 2026'},now));assert(!isPastTerm({term:'Fall 2026'},Date.parse('2026-11-09')));assert(!isPastTerm({term:'Summer 2027'},now));
+console.log('Passed: null location slugs and passed internship seasons.');
