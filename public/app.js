@@ -77,7 +77,7 @@ function drawMap(){
  $('#stateGrid').innerHTML=Object.entries(stateNames).sort((a,b)=>a[1].localeCompare(b[1])).map(([s,n])=>'<button class="'+(s===currentState?'active':'')+'" data-state="'+s+'" aria-label="'+n+': '+stateCount(s)+' openings" aria-pressed="'+(s===currentState)+'"><b>'+n+'</b><small>'+stateCount(s)+'</small></button>').join('');
  $$('#stateGrid button').forEach(b=>b.onclick=()=>setState(b.dataset.state));
 }
-function setMapMode(map){$('#map').hidden=!map;$('#stateGrid').hidden=map;$('#mapMode').classList.toggle('selected',map);$('#listMode').classList.toggle('selected',!map);$('#mapMode').setAttribute('aria-pressed',map);$('#listMode').setAttribute('aria-pressed',!map);$('#mapAlternative').setAttribute('aria-label',map?'Choose a state from a list':'Back to the map');$('#mapAlternative').title=map?'Choose a state from a list':'Back to the map';}
+function setMapMode(map){$('#mapAlternativeLabel').textContent=map?'Browse by state':'Back to the map';$('#map').hidden=!map;$('#stateGrid').hidden=map;$('#mapMode').classList.toggle('selected',map);$('#listMode').classList.toggle('selected',!map);$('#mapMode').setAttribute('aria-pressed',map);$('#listMode').setAttribute('aria-pressed',!map);$('#mapAlternative').setAttribute('aria-label',map?'Choose a state from a list':'Back to the map');$('#mapAlternative').title=map?'Choose a state from a list':'Back to the map';}
 $('#mapMode').onclick=()=>setMapMode(true);$('#listMode').onclick=()=>setMapMode(false);
 $('#mapAlternative').onclick=()=>setMapMode($('#map').hidden);
 
