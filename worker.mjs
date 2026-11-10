@@ -25,5 +25,5 @@ export default{async fetch(request,env,ctx){let url=new URL(request.url);try{
  let d=await refresh(env);return json(publicFeed(d))}
  if(url.pathname==='/api/health')return json({ok:true,storage:!!env.BUCKET,sources:sources.length});
  if(url.pathname.startsWith('/api/'))return json({error:'Not found'},404);
- let asset=assets[url.pathname==='/'?'/index.html':url.pathname];if(!asset)return new Response('Not found',{status:404});return new Response(asset.body,{headers:{'content-type':asset.type,'cache-control':url.pathname.startsWith('/vendor/')?'public, max-age=86400':'no-cache','x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin'}})
+ let asset=assets[url.pathname==='/'?'/index.html':url.pathname];if(!asset)return new Response('Not found',{status:404});return new Response(asset.encoding==='base64'?Uint8Array.from(atob(asset.body),c=>c.charCodeAt(0)):asset.body,{headers:{'content-type':asset.type,'cache-control':url.pathname.startsWith('/vendor/')?'public, max-age=86400':'no-cache','x-content-type-options':'nosniff','referrer-policy':'no-referrer','content-security-policy':"font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'"}})
  }catch(e){console.error(e);return json({error:'The catalog is temporarily unavailable. Please try again.'},503)}}};
